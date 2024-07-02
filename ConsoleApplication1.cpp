@@ -1,8 +1,8 @@
-﻿#include <iostream>
+#include <iostream>
 #include <fstream>
 #include <conio.h>
 #include <cstdlib> // Для rand() и srand()
-#include <ctime>   // Для time()
+#include <ctime>   // Для time(), clock_t, clock(), CLOCKS_PER_SEC
 
 void saveToFile(const std::string& filename, int* array, int size) {
     std::ofstream file(filename);
@@ -12,7 +12,10 @@ void saveToFile(const std::string& filename, int* array, int size) {
     file.close();
 }
 
-void selectionSort(int* array, int size, bool ascending) {
+void selectionSort(int* array, int size, bool ascending, double& duration, int& swapCount) {
+    clock_t start = clock();
+    swapCount = 0;
+
     for (int i = 0; i < size - 1; ++i) {
         int minMaxIndex = i;
         for (int j = i + 1; j < size; ++j) {
@@ -20,15 +23,21 @@ void selectionSort(int* array, int size, bool ascending) {
                 minMaxIndex = j;
             }
         }
-        int temp = array[minMaxIndex];
-        array[minMaxIndex] = array[i];
-        array[i] = temp;
+        if (minMaxIndex != i) {
+            int temp = array[minMaxIndex];
+            array[minMaxIndex] = array[i];
+            array[i] = temp;
+            ++swapCount;
+        }
     }
+
+    clock_t end = clock();
+    duration = static_cast<double>(end - start) / CLOCKS_PER_SEC;
 }
 
 void randomFillArray(int* array, int size) {
     for (int i = 0; i < size; ++i) {
-        array[i] = rand() - rand(); 
+        array[i] = rand() - rand();
     }
 }
 
@@ -76,11 +85,18 @@ int main() {
                 system("cls");
                 break;
             }
+            std::cout << "\nКоличество элементов в массиве: " << size << "\n" << std::endl;
             saveToFile("original_array.txt", array, size);
             std::cout << "Исходный массив сохранен в original_array.txt\n";
-            selectionSort(array, size, ascending);
+
+            double duration;
+            int swapCount;
+            selectionSort(array, size, ascending, duration, swapCount);
+
             saveToFile("sorted_array.txt", array, size);
             std::cout << "Массив отсортирован и сохранен в sorted_array.txt\n" << std::endl;
+            std::cout << "Время сортировки: " << duration << " секунд\n";
+            std::cout << "Количество перестановок: " << swapCount << "\n" << std::endl;
             std::cout << "Нажмите любую клавишу для продолжения..." << std::endl;
             _getch();
             system("cls");
